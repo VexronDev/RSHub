@@ -40,6 +40,22 @@ function Login({Login_img}) {
   const ToRegister = () => {
     setIsClicked(!isClicked);
   };
+  
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleLogin = async () => {
+      const response = await fetch('https://rshub.zju.edu.cn/login', {  // Adjust the URL based on your Flask server
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      console.log("error1: ");  // Display success message
+      console.log("error2: ");  // Display error message
+  }
 
   return (
     <div className= {styles.wrapper}>
@@ -51,14 +67,14 @@ function Login({Login_img}) {
               <form action="">
                 <h1>Login</h1>
                 <div className={styles.Input_box}>
-                  <input type="text" placeholder='Username' required></input>
+                  <input type="username" placeholder='Username' value={username} onChange={(e) => setUsername(e.target.value)} required></input>
                 </div>
 
                 <div className={styles.Input_box}>
-                  <input type="text" placeholder='Password' required></input>
+                  <input type="password" placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} required></input>
                 </div>
 
-                <button type="submit">
+                <button type="submit" onClick={handleLogin}>
                   Login
                 </button>
 
