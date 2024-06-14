@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles1.module.css';
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
 const LoginList = [
   {
@@ -40,22 +41,79 @@ function Login({Login_img}) {
   const ToRegister = () => {
     setIsClicked(!isClicked);
   };
-  
+
+  const history = useHistory();
+    const [LoggedIn, setLogged] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
-    const handleLogin = async () => {
-      const response = await fetch('https://rshub.zju.edu.cn/login', {  // Adjust the URL based on your Flask server
+    const [response, setResponse] = useState('');
+    const handleLogin = () => {
+      event.preventDefault()
+      fetch('http://127.0.0.1:5000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
-      console.log("error1: ");  // Display success message
-      console.log("error2: ");  // Display error message
-  }
+        body: JSON.stringify({
+          'username': username,
+          'password': password
+      })
+      })
+        .then(response => response.json())
+        .then((data) => {
+          setResponse(data);
+          setLogged('True');
+          if (data.result) {
+           // Store the token in local storage or session storage
+          localStorage.setItem('LoggedIn', LoggedIn)
+          localStorage.setItem('tokenTmp', data.tokenTmp);
+          
+          // Redirect to UserPage
+          history.push('/UserPage');
+          } else {
+            console.error('Login failed:', data.error);
+          }
+        })
+        .catch(error => console.error('Error:', error));  
+    };
+
+    const [email, setEmail] = useState('');
+    const [institution, setInstitution] = useState('');
+    const [confirm_password, setPasswordCon] = useState('');
+    const [responseReg, setResponseReg] = useState('');
+
+    const handleRegister = () => {
+      event.preventDefault()
+      fetch('http://127.0.0.1:5000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          'username': username,
+          'email'   : email,
+          'institution' : institution,
+          'confirm_password' : confirm_password,
+          'password': password
+      })
+      })
+        .then(response => response.json())
+        .then((data) => {
+          setResponseReg(data);
+          setLogged('True');
+          if (data.result) {
+           // Store the token in local storage or session storage
+          localStorage.setItem('LoggedIn', LoggedIn)
+          localStorage.setItem('tokenTmp', data.tokenTmp);
+          
+          // Redirect to UserPage
+          history.push('/UserPage');
+          } else {
+            console.error('Login failed:', data.error);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    };
 
   return (
     <div className= {styles.wrapper}>
@@ -66,17 +124,24 @@ function Login({Login_img}) {
             <div className= {isClicked ? styles.Login_Formde : styles.Login_Form}>
               <form action="">
                 <h1>Login</h1>
-                <div className={styles.Input_box}>
-                  <input type="username" placeholder='Username' value={username} onChange={(e) => setUsername(e.target.value)} required></input>
+                <div className={styles.Input_center}>
+                  <div className={styles.Input_box}>
+                    <input name = "username" type="text" placeholder='Username' value={username} onChange={(e) => setUsername(e.target.value)} required></input>
+                  </div>
+
+                  <div className={styles.Input_box}>
+                    <input name = "password" type="password" placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} required></input>
+                  </div>
                 </div>
 
-                <div className={styles.Input_box}>
-                  <input type="password" placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} required></input>
-                </div>
-
-                <button type="submit" onClick={handleLogin}>
+                <button type="submit" onClick={handleLogin} value="Login">
                   Login
                 </button>
+                {response && (
+                  <div>
+                    <p>{response.result ? "Login Succesful" : response.error}</p>
+                  </div>
+                )}
 
                 <div>
                   <p> 
@@ -90,22 +155,41 @@ function Login({Login_img}) {
             </div>  
 
             <div className={isClicked ? styles.Register : styles.Registerde}>
-              <form action="">
+              <form styles={{display: "flex", flexDirection: "column"}} action="">
                 <h1>
                   Register
                 </h1>
-                <div className={styles.Input_box}>
-                  <input type="text" placeholder='Username' required></input>
+                <div className={styles.Input_center}>
+                  <div className={styles.Input_box}>
+                    <input type="text" id="fullname" name="fullname" placeholder='Username' onChange={(e) => setUsername(e.target.value)} required></input>
+                  </div>
+
+                  <div className={styles.Input_box}>
+                    <input type="email" id="email" name="email" placeholder='Email' onChange={(e) => setEmail(e.target.value)} required></input>
+                  </div>
+
+                  <div className={styles.Input_box}>
+                    <input type="text" id="institution" name="institution" placeholder='Institution' onChange={(e) => setInstitution(e.target.value)} required></input>
+                  </div>
+
+                  <div className={styles.Input_box}>
+                    <input type="password" id="password" name="password" placeholder='Password' onChange={(e) => setPassword(e.target.value)} required></input>
+                  </div>
+
+                  <div className={styles.Input_box}>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder='Confirm Password' onChange={(e) => setPasswordCon(e.target.value)} required></input>
+                  </div>
                 </div>
 
-                <div className={styles.Input_box}>
-                  <input type="text" placeholder='Password' required></input>
-                </div>
-
-                <button type="submit">
+                <button type="submit" onClick={handleRegister}>
                   Register
                 </button>
-
+                
+                {responseReg && (
+                  <div>
+                    <p>{responseReg.result ? "Registration Succesful" : responseReg.error}</p>
+                  </div>
+                )}
                 <div className='register'>
                   <p> 
                     Already have an account? {' '}
